@@ -1,37 +1,40 @@
 import { Response } from "express";
 import { AuthenticatedRequest } from "@/middlewares";
-import hotelService from "@/services/hotels-service";
 import httpStatus from "http-status";
+import bookingService from "@/services/booking-service";
 
-export async function getBooking(req: AuthenticatedRequest, res: Response) {
+export async function getUniqueBooking(req: AuthenticatedRequest, res: Response) {
   const { userId } = req;
 
   try {
-    const hotels = await hotelService.getHotels(Number(userId));
-    return res.status(httpStatus.OK).send(hotels);
+    const bookings = await bookingService.getBookings(Number(userId));
+    return res.status(httpStatus.OK).send(bookings);
   } catch (error) {
     if (error.name === "NotFoundError") {
       return res.sendStatus(httpStatus.NOT_FOUND);
     }
-    return res.sendStatus(httpStatus.PAYMENT_REQUIRED);
+    return res.sendStatus(httpStatus.INTERNAL_SERVER_ERROR);
   }
 }
 
-export async function getHotelsWithRooms(req: AuthenticatedRequest, res: Response) {
+export async function postUserBooking(req: AuthenticatedRequest, res: Response) {
   const { userId } = req;
-  const { hotelId } = req.params;
+  const { roomId } = req.body;
+
+  if( !roomId ) {
+    return res.sendStatus(404);
+  }
 
   try {
-    const hotels = await hotelService.getHotelsWithRooms(Number(userId), Number(hotelId));
+    const booking = await bookingService.postBooking(Number(userId), Number(roomId));
 
-    return res.status(httpStatus.OK).send(hotels);
+    return res.status(httpStatus.OK).send(booking);
   } catch (error) {
     if (error.name === "NotFoundError") {
       return res.sendStatus(httpStatus.NOT_FOUND);
     }
-    if (error.name === "CannotListHotelsError") {
-      return res.sendStatus(httpStatus.PAYMENT_REQUIRED);
+    if (error.name === "CannotListHotelsError" || error.name === "Room is full") {
+      return res.sendStatus(httpStatus.FORBIDDEN);
     }
-    return res.sendStatus(httpStatus.BAD_REQUEST);
   }
 }
