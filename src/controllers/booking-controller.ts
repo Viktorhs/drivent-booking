@@ -38,3 +38,26 @@ export async function postUserBooking(req: AuthenticatedRequest, res: Response) 
     }
   }
 }
+
+export async function putUserBooking(req: AuthenticatedRequest, res: Response) {
+  const { userId } = req;
+  const { roomId } = req.body;
+  const { bookingId } = req.params;
+
+  if( !roomId ) {
+    return res.sendStatus(404);
+  }
+
+  try {
+    const booking = await bookingService.putBooking(Number(userId), Number(roomId), Number(bookingId));
+
+    return res.status(httpStatus.OK).send(booking);
+  } catch (error) {
+    if (error.name === "NotFoundError") {
+      return res.sendStatus(httpStatus.NOT_FOUND);
+    }
+    if (error.name === "CannotListHotelsError" || error.name === "Room is full") {
+      return res.sendStatus(httpStatus.FORBIDDEN);
+    }
+  }
+}
