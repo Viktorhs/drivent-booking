@@ -33,7 +33,7 @@ export async function postUserBooking(req: AuthenticatedRequest, res: Response) 
     if (error.name === "NotFoundError") {
       return res.sendStatus(httpStatus.NOT_FOUND);
     }
-    if (error.name === "CannotListHotelsError" || error.name === "Room is full") {
+    if (error.name === "RequestError") {
       return res.sendStatus(httpStatus.FORBIDDEN);
     }
   }
@@ -56,8 +56,11 @@ export async function putUserBooking(req: AuthenticatedRequest, res: Response) {
     if (error.name === "NotFoundError") {
       return res.sendStatus(httpStatus.NOT_FOUND);
     }
-    if (error.name === "CannotListHotelsError" || error.name === "Room is full") {
+    if (error.name === "RequestError") {
       return res.sendStatus(httpStatus.FORBIDDEN);
+    }
+    if (error.name === "UnauthorizedError") {
+      return res.sendStatus(httpStatus.UNAUTHORIZED);
     }
   }
 }
